@@ -297,7 +297,9 @@ export default function LessonsPage() {
           pastParticiple: "gone", 
           pastParticipleTranscription: "/ɡɒn/",
           translation: "йти",
-          learned: true
+          learned: true,
+          example: "I go to school every day. Yesterday I went to the cinema. I have gone there many times.",
+          exampleTranslation: "Я ходжу до школи щодня. Вчора я ходив до кінотеатру. Я ходив туди багато разів."
         },
         { 
           infinitive: "come", 
@@ -307,7 +309,9 @@ export default function LessonsPage() {
           pastParticiple: "come", 
           pastParticipleTranscription: "/kʌm/",
           translation: "приходити",
-          learned: true
+          learned: true,
+          example: "Please come to my party. She came late yesterday. They have come from London.",
+          exampleTranslation: "Будь ласка, приходь на мою вечірку. Вона прийшла пізно вчора. Вони приїхали з Лондона."
         },
         { 
           infinitive: "see", 
@@ -316,7 +320,9 @@ export default function LessonsPage() {
           pastSimpleTranscription: "/sɔː/",
           pastParticiple: "seen", 
           pastParticipleTranscription: "/siːn/",
-          translation: "бачити" 
+          translation: "бачити",
+          example: "I can see the mountains. I saw a beautiful sunset yesterday. Have you seen this movie?",
+          exampleTranslation: "Я можу бачити гори. Я бачив красивий захід сонця вчора. Ти бачив цей фільм?"
         },
         { 
           infinitive: "take", 
@@ -325,7 +331,9 @@ export default function LessonsPage() {
           pastSimpleTranscription: "/tʊk/",
           pastParticiple: "taken", 
           pastParticipleTranscription: "/ˈteɪkən/",
-          translation: "брати" 
+          translation: "брати",
+          example: "Take your umbrella. I took the bus to work. The book has been taken from the library.",
+          exampleTranslation: "Візьми свою парасольку. Я їздив на роботу автобусом. Книгу взяли з бібліотеки."
         },
         { 
           infinitive: "give", 
@@ -334,7 +342,9 @@ export default function LessonsPage() {
           pastSimpleTranscription: "/ɡeɪv/",
           pastParticiple: "given", 
           pastParticipleTranscription: "/ˈɡɪvən/",
-          translation: "давати" 
+          translation: "давати",
+          example: "Give me your hand. She gave me a present. I have given him my phone number.",
+          exampleTranslation: "Дай мені свою руку. Вона дала мені подарунок. Я дав йому свій номер телефону."
         }
       ]
     },
@@ -344,15 +354,37 @@ export default function LessonsPage() {
       wordCount: 50,
       description: "Основні слова для початківців",
       words: [
-        { word: "hello", transcription: "/həˈləʊ/", translation: "привіт" },
-        { word: "world", transcription: "/wɜːld/", translation: "світ" }
+        { 
+          word: "hello", 
+          transcription: "/həˈləʊ/", 
+          translation: "привіт",
+          example: "Hello! How are you today? I always say hello to my neighbors.",
+          exampleTranslation: "Привіт! Як справи сьогодні? Я завжди вітаюся зі своїми сусідами."
+        },
+        { 
+          word: "world", 
+          transcription: "/wɜːld/", 
+          translation: "світ",
+          example: "The world is beautiful. I want to travel around the world. This is the best coffee in the world.",
+          exampleTranslation: "Світ прекрасний. Я хочу подорожувати по всьому світу. Це найкраща кава у світі."
+        }
       ]
     }
   ])
   const [readingLevel, setReadingLevel] = useState('B1')
   const [readingLength, setReadingLength] = useState('середні')
   const [readingTopic, setReadingTopic] = useState('')
-  const [createdTexts, setCreatedTexts] = useState([])
+  const [createdTexts, setCreatedTexts] = useState([
+    {
+      id: 1,
+      text: "Learning English is an exciting journey that opens doors to new opportunities. Every day brings new words, phrases, and grammar rules to discover. The key to success is consistent practice and patience with yourself. Start with simple conversations, read books at your level, and don't be afraid to make mistakes. Remember, even native speakers continue learning throughout their lives. With dedication and the right approach, you can achieve fluency in English.",
+      translation: "Вивчення англійської мови - це захоплююча подорож, яка відкриває двері до нових можливостей. Кожен день приносить нові слова, фрази та граматичні правила для вивчення. Ключ до успіху - це постійна практика та терпіння до себе. Почніть з простих розмов, читайте книги відповідно до вашого рівня і не бійтеся робити помилки. Пам'ятайте, навіть носії мови продовжують вчитися протягом усього життя. З відданістю та правильним підходом ви можете досягти вільного володіння англійською мовою.",
+      level: "B1",
+      topic: "Learning English",
+      length: "середні",
+      createdAt: new Date().toISOString()
+    }
+  ])
   const [selectedCollection, setSelectedCollection] = useState(null)
   const [collectionWords, setCollectionWords] = useState([])
   const [wordStatuses, setWordStatuses] = useState({}) // Статуси слів: 'not-learned', 'learned', 'repeat'
@@ -503,12 +535,12 @@ export default function LessonsPage() {
     }
   }, [])
 
-  // Функция для генерации текста через Gemini API
+  // Функция для генерации текста через API
   const generateText = async () => {
     setIsGenerating(true)
     
     try {
-      const topicToUse = readingTopic.trim() || ''
+      const topicToUse = readingTopic.trim() || 'Learning English'
       
       // Створюємо карточку одразу з порожнім контентом
       const textId = Date.now().toString()
@@ -516,7 +548,7 @@ export default function LessonsPage() {
         id: textId,
         level: readingLevel,
         length: readingLength,
-        topic: topicToUse || 'Генерую тему...',
+        topic: topicToUse,
         content: '',
         createdAt: new Date().toLocaleString(),
         isGenerating: true
@@ -525,6 +557,7 @@ export default function LessonsPage() {
       setCreatedTexts(prev => [newText, ...prev])
       setReadingTopic('')
       
+      // Викликаємо API для генерації тексту
       const response = await fetch('/api/generate-text', {
         method: 'POST',
         headers: {
@@ -534,26 +567,43 @@ export default function LessonsPage() {
           topic: topicToUse,
           level: readingLevel,
           length: readingLength
-        })
+        }),
       })
-
+      
       if (!response.ok) {
         const errorData = await response.json()
-        if (response.status === 429) {
-          throw new Error('Превышена дневная квота API. Попробуйте завтра или обновите план.')
-        }
         throw new Error(errorData.error || 'Помилка при генерації тексту')
       }
-
-      const data = await response.json()
       
-      // Оновлюємо карточку з отриманими даними
+      const data = await response.json()
+      const generatedText = data.content
+      
+      // Отримуємо переклад тексту
+      const translationResponse = await fetch('/api/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          text: generatedText,
+          isPhrase: true 
+        }),
+      })
+      
+      let translation = 'Переклад недоступний'
+      if (translationResponse.ok) {
+        const translationData = await translationResponse.json()
+        translation = translationData.translation
+      }
+      
+      // Оновлюємо карточку з згенерованими даними
       const updatedText = {
         id: textId,
+        text: generatedText,
+        translation: translation,
         level: readingLevel,
         length: readingLength,
-        topic: data.actualTopic || topicToUse || 'Випадкова тема',
-        content: data.content,
+        topic: topicToUse,
         createdAt: new Date().toLocaleString(),
         isGenerating: false
       }
@@ -563,7 +613,7 @@ export default function LessonsPage() {
       ))
       
       // Запускаємо анімацію друкування
-      startTypingAnimation(textId, data.content)
+      startTypingAnimation(textId, generatedText)
       
     } catch (error) {
       console.error('Помилка генерації тексту:', error)
@@ -578,7 +628,7 @@ export default function LessonsPage() {
     }
   }
 
-  // Функция для получения перевода слова через Gemini API
+  // Функция для получения перевода слова через API
   const getTranslation = async (word) => {
     try {
       const response = await fetch('/api/translate', {
@@ -586,29 +636,25 @@ export default function LessonsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           text: word,
-          isPhrase: false
-        })
+          isPhrase: false 
+        }),
       })
-
+      
       if (!response.ok) {
-        const errorData = await response.json()
-        if (response.status === 429) {
-          return 'Квота API исчерпана'
-        }
-        throw new Error(errorData.error || 'Ошибка при переводе')
+        throw new Error('Помилка перекладу')
       }
-
+      
       const data = await response.json()
-      return data.translation || 'перевод не найден'
+      return data.translation || 'переклад не знайдено'
     } catch (error) {
-      console.error('Ошибка перевода:', error)
-      return 'ошибка перевода'
+      console.error('Помилка отримання перекладу:', error)
+      return 'помилка перекладу'
     }
   }
 
-  // Функция для получения перевода фразы или предложения через Gemini API
+  // Функция для получения перевода фразы или предложения через API
   const getPhraseTranslation = async (phrase) => {
     try {
       const response = await fetch('/api/translate', {
@@ -616,25 +662,21 @@ export default function LessonsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
+        body: JSON.stringify({ 
           text: phrase,
-          isPhrase: true
-        })
+          isPhrase: true 
+        }),
       })
-
+      
       if (!response.ok) {
-        const errorData = await response.json()
-        if (response.status === 429) {
-          return 'Квота API исчерпана'
-        }
-        throw new Error(errorData.error || 'Ошибка при переводе фразы')
+        throw new Error('Помилка перекладу фрази')
       }
-
+      
       const data = await response.json()
-      return data.translation || 'перевод не найден'
+      return data.translation || 'переклад фрази не знайдено'
     } catch (error) {
-      console.error('Ошибка перевода фразы:', error)
-      return 'ошибка перевода'
+      console.error('Помилка отримання перекладу фрази:', error)
+      return 'помилка перекладу фрази'
     }
   }
 
@@ -700,7 +742,7 @@ export default function LessonsPage() {
     setTooltip(prev => ({ ...prev, visible: false }))
   }
 
-  // Функция для генерации примера предложения с переводом
+  // Функция для генерации примера предложения с переводом через API
   const generateExampleSentence = async (word) => {
     try {
       const response = await fetch('/api/generate-example', {
@@ -708,25 +750,23 @@ export default function LessonsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          word: word
-        })
+        body: JSON.stringify({ word }),
       })
-
+      
       if (!response.ok) {
-        throw new Error('Помилка при генерації прикладу')
+        throw new Error('Помилка генерації прикладу')
       }
-
+      
       const data = await response.json()
       return {
-        example: data.example || 'Приклад не знайдено',
-        translation: data.translation || 'Переклад не знайдено'
+        example: data.example || `This is an example sentence with the word "${word}".`,
+        translation: data.translation || `Це приклад речення зі словом "${word}".`
       }
     } catch (error) {
       console.error('Помилка генерації прикладу:', error)
       return {
-        example: 'Помилка генерації прикладу',
-        translation: 'Помилка генерації перекладу'
+        example: `This is an example sentence with the word "${word}".`,
+        translation: `Це приклад речення зі словом "${word}".`
       }
     }
   }
@@ -798,6 +838,10 @@ export default function LessonsPage() {
         let errorContent = 'Вибачте, сталася помилка. Спробуйте ще раз.'
         if (response.status === 429) {
           errorContent = 'Превышена дневная квота API. Попробуйте завтра или обновите план.'
+        } else if (response.status === 503) {
+          errorContent = 'Сервіс тимчасово перевантажений. Спробуйте через кілька хвилин.'
+        } else if (response.status === 401) {
+          errorContent = 'Помилка автентифікації API. Перевірте налаштування.'
         }
         const errorMessage = { role: 'assistant', content: errorContent }
         setChatMessages(prev => [...prev, errorMessage])
@@ -2147,23 +2191,41 @@ export default function LessonsPage() {
                                     'Content-Type': 'application/json',
                                   },
                                   body: JSON.stringify({
-                                    topic: text.topic === 'Випадкова тема' ? '' : text.topic,
+                                    topic: text.topic,
                                     level: text.level,
                                     length: text.length
                                   })
                                 })
-
+                                
                                 if (!response.ok) {
-                                  throw new Error('Помилка при регенерації тексту')
+                                  throw new Error('Помилка генерації тексту')
                                 }
-
+                                
                                 const data = await response.json()
+                                
+                                // Перекладаємо згенерований текст
+                                const translationResponse = await fetch('/api/translate', {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                  body: JSON.stringify({
+                                    text: data.text
+                                  })
+                                })
+                                
+                                let translation = ''
+                                if (translationResponse.ok) {
+                                  const translationData = await translationResponse.json()
+                                  translation = translationData.translation
+                                }
                                 
                                 const newText = {
                                   level: text.level,
                                   length: text.length,
-                                  topic: data.actualTopic || text.topic,
-                                  content: data.content,
+                                  topic: text.topic,
+                                  content: data.text,
+                                  translation: translation,
                                   createdAt: new Date().toLocaleString()
                                 }
                                 
@@ -2222,7 +2284,7 @@ export default function LessonsPage() {
                             <span className="text-gray-600">Генерую текст...</span>
                           </div>
                         ) : (
-                          (typingTexts[text.id] ? typingTexts[text.id] : text.content).split('\n').map((paragraph, paragraphIndex) => {
+                          (typingTexts[text.id] ? typingTexts[text.id] : text.text).split('\n').map((paragraph, paragraphIndex) => {
                             if (paragraph.trim()) {
                               return <p key={`${text.id}-paragraph-${paragraphIndex}`} className="mb-4">{paragraph}</p>
                             }
@@ -2462,31 +2524,38 @@ export default function LessonsPage() {
                   <div className="lg:col-span-3">
                     <div className="bg-white rounded-lg shadow-sm p-8">
                       <div className="prose prose-lg max-w-none">
-                        {selectedLesson.content?.article.split('\n').map((paragraph, index) => {
-                          if (paragraph.startsWith('# ')) {
-                            return <h1 key={index} className="text-3xl font-bold text-gray-900 mb-6">{paragraph.slice(2)}</h1>
-                          } else if (paragraph.startsWith('## ')) {
-                            return <h2 key={index} className="text-2xl font-semibold text-gray-900 mb-4 mt-8">{paragraph.slice(3)}</h2>
-                          } else if (paragraph.startsWith('### ')) {
-                            return <h3 key={index} className="text-xl font-semibold text-gray-900 mb-3 mt-6">{paragraph.slice(4)}</h3>
-                          } else if (paragraph.startsWith('- ')) {
-                            return <li key={index} className="text-gray-700 mb-2 ml-4">{paragraph.slice(2)}</li>
-                          } else if (paragraph.match(/^\d+\./)) {
-                            return <li key={index} className="text-gray-700 mb-2 ml-4 list-decimal">{paragraph.replace(/^\d+\.\s*/, '')}</li>
-                          } else if (paragraph.includes('**') && paragraph.includes('**')) {
-                            const parts = paragraph.split('**')
-                            return (
-                              <p key={index} className="text-gray-700 mb-4 leading-relaxed">
-                                {parts.map((part, partIndex) => 
-                                  partIndex % 2 === 1 ? <strong key={`part-${index}-${partIndex}`}>{part}</strong> : part
-                                )}
-                              </p>
-                            )
-                          } else if (paragraph.trim()) {
-                            return <p key={index} className="text-gray-700 mb-4 leading-relaxed">{paragraph}</p>
-                          }
-                          return null
-                        })}
+                        {selectedLesson.content?.article ? (
+                          selectedLesson.content.article.split('\n').map((paragraph, index) => {
+                            if (paragraph.startsWith('# ')) {
+                              return <h1 key={`${selectedLesson.id}-h1-${index}`} className="text-3xl font-bold text-gray-900 mb-6">{paragraph.slice(2)}</h1>
+                            } else if (paragraph.startsWith('## ')) {
+                              return <h2 key={`${selectedLesson.id}-h2-${index}`} className="text-2xl font-semibold text-gray-900 mb-4 mt-8">{paragraph.slice(3)}</h2>
+                            } else if (paragraph.startsWith('### ')) {
+                              return <h3 key={`${selectedLesson.id}-h3-${index}`} className="text-xl font-semibold text-gray-900 mb-3 mt-6">{paragraph.slice(4)}</h3>
+                            } else if (paragraph.startsWith('- ')) {
+                              return <li key={`${selectedLesson.id}-li-${index}`} className="text-gray-700 mb-2 ml-4">{paragraph.slice(2)}</li>
+                            } else if (paragraph.match(/^\d+\./)) {
+                              return <li key={`${selectedLesson.id}-ol-${index}`} className="text-gray-700 mb-2 ml-4 list-decimal">{paragraph.replace(/^\d+\.\s*/, '')}</li>
+                            } else if (paragraph.includes('**') && paragraph.includes('**')) {
+                              const parts = paragraph.split('**')
+                              return (
+                                <p key={`${selectedLesson.id}-p-${index}`} className="text-gray-700 mb-4 leading-relaxed">
+                                  {parts.map((part, partIndex) => 
+                                    partIndex % 2 === 1 ? <strong key={`part-${selectedLesson.id}-${index}-${partIndex}`}>{part}</strong> : part
+                                  )}
+                                </p>
+                              )
+                            } else if (paragraph.trim()) {
+                              return <p key={`${selectedLesson.id}-p-${index}`} className="text-gray-700 mb-4 leading-relaxed">{paragraph}</p>
+                            }
+                            return null
+                          })
+                        ) : (
+                          <div className="text-center py-12">
+                            <p className="text-gray-500 text-lg">Контент для цього уроку ще не доступний</p>
+                            <p className="text-gray-400 text-sm mt-2">Будь ласка, оберіть інший урок</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

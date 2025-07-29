@@ -3,6 +3,29 @@ import { NextResponse } from 'next/server'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 
+// Функція для повторних спроб з exponential backoff
+async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      const isRetryableError = error.message && (
+        error.message.includes('503') || 
+        error.message.includes('overloaded') ||
+        error.message.includes('Service Unavailable')
+      )
+      
+      if (attempt === maxRetries || !isRetryableError) {
+        throw error
+      }
+      
+      const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000
+      console.log(`Спроба ${attempt} невдала, повторюємо через ${Math.round(delay)}мс...`)
+      await new Promise(resolve => setTimeout(resolve, delay))
+    }
+  }
+}
+
 export async function POST(request) {
   try {
     const { topic, level, length } = await request.json()
@@ -67,7 +90,12 @@ export async function POST(request) {
 Текст:`
 
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-    const result = await model.generateContent(prompt)
+    
+    // Використовуємо retry функцію для API виклику
+    const result = await retryWithBackoff(async () => {
+      return await model.generateContent(prompt)
+    })
+    
     const response = await result.response
     const text = response.text()
 
@@ -75,7 +103,7 @@ export async function POST(request) {
   } catch (error) {
     console.error('Помилка генерації тексту:', error)
     
-    // Проверяем, является ли это ошибкой превышения квоты
+    // Проверяем различные типы ошибок API
     if (error.message && (error.message.includes('429') || error.message.includes('quota'))) {
       return NextResponse.json(
         { error: 'Превышена дневная квота API. Попробуйте завтра или обновите план.' },
@@ -83,8 +111,22 @@ export async function POST(request) {
       )
     }
     
+    if (error.message && (error.message.includes('503') || error.message.includes('overloaded'))) {
+      return NextResponse.json(
+        { error: 'Сервіс тимчасово перевантажений. Спробуйте через кілька хвилин.' },
+        { status: 503 }
+      )
+    }
+    
+    if (error.message && error.message.includes('401')) {
+      return NextResponse.json(
+        { error: 'Невірний API ключ. Перевірте налаштування.' },
+        { status: 401 }
+      )
+    }
+    
     return NextResponse.json(
-      { error: 'Помилка при генерації тексту' },
+      { error: 'Помилка при генерації тексту. Спробуйте ще раз.' },
       { status: 500 }
     )
   }
